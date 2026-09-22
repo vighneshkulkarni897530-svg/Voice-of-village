@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const bcrypt = require('bcrypt');
 const { db } = require('./firebase');
 const { sendOtpEmail, sendResolutionEmail } = require('./emailService');
@@ -714,14 +715,20 @@ app.post('/api/clearData', async (req, res) => {
     }
 });
 
-/* ================== STATIC FILES ================== */
-app.use(express.static('.'));
+/* ================== STATIC FILES & ROOT ROUTE ================== */
+app.use(express.static(path.join(__dirname, '.')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 /* ================== SERVER ================== */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running at http://localhost:${PORT}`);
+    });
+}
 
 module.exports = app;
