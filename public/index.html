@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gram Panchayat Samasya Nivaran - Government of Maharashtra Citizen Grievance Portal">
+    <meta name="theme-color" content="#1a4480">
+    <title>Gram Panchayat Samasya Nivaran | Government of Maharashtra</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle" aria-label="Language selection">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <div id="navUserDisplay"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- Hero Section -->
+        <section class="landing-hero">
+            <div style="position:relative; z-index:2;">
+                <span class="jurisdiction-badge" style="margin-bottom:12px; background:rgba(255,255,255,0.2);">🏛️ Maharashtra Rural Development Department</span>
+                <h1 data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</h1>
+                <p data-i18n="portalTagline">Direct Citizen Grievance Redressal, Tracking & Local Governance Transparency across 40,000+ Villages in Maharashtra.</p>
+            </div>
+        </section>
+
+        <!-- Realtime Auto-Updating KPI Stats -->
+        <div class="live-indicator-wrapper">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span data-en="Live Realtime Metrics" data-mr="थेट स्वयंचलित आकडेवारी">Live Realtime Metrics</span>
+            </div>
+        </div>
+
+        <div class="stat-grid" id="portalStatsGrid">
+            <div class="stat-card">
+                <div class="stat-icon total">📋</div>
+                <div class="stat-content">
+                    <h3 id="statTotalComplaints">0</h3>
+                    <p data-i18n="totalComplaints">Total Grievances</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon resolved">✅</div>
+                <div class="stat-content">
+                    <h3 id="statResolvedComplaints">0</h3>
+                    <p data-i18n="resolvedComplaints">Resolved</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon progress">⚙️</div>
+                <div class="stat-content">
+                    <h3 id="statInProgressComplaints">0</h3>
+                    <p data-i18n="inProgressComplaints">Under Investigation</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">⏳</div>
+                <div class="stat-content">
+                    <h3 id="statPendingComplaints">0</h3>
+                    <p data-i18n="pendingComplaints">Pending Review</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Portals Grid -->
+        <div class="portal-grid">
+            <!-- Citizen Portal Card -->
+            <div class="portal-card citizen">
+                <div>
+                    <div class="portal-icon">👥</div>
+                    <h3 data-i18n="userLoginTitle">Citizen Portal</h3>
+                    <p data-i18n="userLoginDesc">Register or login to file village grievances, upload photo evidence, and track real-time resolution status from your Gram Panchayat.</p>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <a href="userlogin.html" class="btn btn-primary btn-block">
+                        <span data-i18n="login">Login as Citizen</span> →
+                    </a>
+                    <a href="userregister.html" class="btn btn-outline btn-block">
+                        <span data-i18n="createCitizenAccount">New Registration (नागरिक नोंदणी)</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Operator Portal Card -->
+            <div class="portal-card operator">
+                <div>
+                    <div class="portal-icon">🛡️</div>
+                    <h3 data-i18n="operatorLoginTitle">Government Officer Portal</h3>
+                    <p data-i18n="operatorLoginDesc">Authorized access for Gram Sevak, Village Operators, and BDOs to review grievances, update resolution progress, and upload completion proofs.</p>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <a href="operatorlogin.html" class="btn btn-saffron btn-block">
+                        <span data-i18n="login">Login as Officer</span> →
+                    </a>
+                    <a href="operatorregister.html" class="btn btn-outline btn-block">
+                        <span data-i18n="createOperatorAccount">Officer Registration (अधिकारी नोंदणी)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Features -->
+        <section class="features-section">
+            <h2 style="font-size:1.3rem; font-weight:800; color:var(--primary-navy);" data-en="Key Platform Features" data-mr="प्रणालीची प्रमुख वैशिष्ट्ये">Key Platform Features</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">📸</div>
+                    <div>
+                        <h4 data-en="Photo Proof Upload" data-mr="फोटो पुरावा जोडणे">Photo Proof Upload</h4>
+                        <p data-en="Attach on-site images of road, water, or sanitation issues directly with your complaint." data-mr="रस्ते, पाणी किंवा स्वच्छता समस्यांचे थेट घटनास्थळावरील फोटो जोडा.">Attach on-site images of road, water, or sanitation issues directly with your complaint.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📍</div>
+                    <div>
+                        <h4 data-en="Jurisdiction Tagging" data-mr="कार्यक्षेत्र निश्चिती">Jurisdiction Tagging</h4>
+                        <p data-en="Automatic routing to the exact Taluka & Gram Panchayat responsible for grievance redressal." data-mr="तक्रार निवारणासाठी संबंधित तालुका व ग्रामपंचायतीकडे स्वयंचलित पाठवणी.">Automatic routing to the exact Taluka & Gram Panchayat responsible for grievance redressal.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <div>
+                        <h4 data-en="Live Status Tracking" data-mr="थेट स्थिती ट्रॅकिंग">Live Status Tracking</h4>
+                        <p data-en="Monitor whether your complaint is Pending, In Progress, or Resolved in real time." data-mr="आपली तक्रार प्रलंबित, प्रक्रियेत किंवा निवारण झाली आहे हे त्वरित पहा.">Monitor whether your complaint is Pending, In Progress, or Resolved in real time.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <div>
+                        <h4 data-en="Secure OTP Verification" data-mr="सुरक्षित ओटीपी पडताळणी">Secure OTP Verification</h4>
+                        <p data-en="Two-step email OTP verification ensuring verified and genuine citizen submissions." data-mr="नागरिकांच्या ईमेलवर ६-अंकी ओटीपी पाठवून सुरक्षित नोंदणी.">Two-step email OTP verification ensuring verified and genuine citizen submissions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <div>
+                <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+                <p style="margin-top:4px; font-size:0.8rem;">© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+            </div>
+            <div style="font-size:0.85rem; color:#cbd5e1;">
+                <span>📞 Toll-Free Helpline: 1800-120-8040 | ✉️ support@grampanchayat.mah.gov.in</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        // Start automatic realtime polling (every 3 seconds) with animated counters
+        LiveStats.startPolling('portalHomeStats', {
+            total: 'statTotalComplaints',
+            resolved: 'statResolvedComplaints',
+            progress: 'statInProgressComplaints',
+            pending: 'statPendingComplaints'
+        }, {}, 3000);
+    </script>
+</body>
+</html>
+

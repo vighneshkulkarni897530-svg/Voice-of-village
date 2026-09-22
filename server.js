@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const bcrypt = require('bcrypt');
 const { db } = require('./firebase');
 const { sendOtpEmail, sendResolutionEmail } = require('./emailService');
@@ -716,9 +717,14 @@ app.post('/api/clearData', async (req, res) => {
 });
 
 /* ================== STATIC FILES & ROOT ROUTE ================== */
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, '.')));
 
 app.get('/', (req, res) => {
+    const publicIndex = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(publicIndex)) {
+        return res.sendFile(publicIndex);
+    }
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
