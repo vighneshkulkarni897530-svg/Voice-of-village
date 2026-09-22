@@ -287,7 +287,110 @@ async function sendResolutionEmail({
     }
 }
 
+/**
+ * Send 6-digit OTP email for password reset
+ * @param {string} toEmail 
+ * @param {string} otp 
+ * @param {string} name 
+ * @param {string} role 
+ * @returns {Promise<{success: boolean, messageId?: string, error?: string}>}
+ */
+async function sendPasswordResetOtpEmail(toEmail, otp, name = 'Citizen / Officer', role = 'citizen') {
+    const mailTransporter = getTransporter();
+    const user = process.env.SMTP_USER;
+    const fromAddress = user 
+        ? `"Gram Panchayat Security" <${user}>`
+        : (process.env.EMAIL_FROM || '"Gram Panchayat Security" <no-reply@grampanchayat.gov.in>');
+
+    if (!mailTransporter) {
+        const errMsg = 'Email server not configured. Please set SMTP_USER and SMTP_PASS in .env';
+        console.error(`❌ ${errMsg}`);
+        return { success: false, error: errMsg };
+    }
+
+    const roleBadge = role === 'operator' ? 'Government Official Account' : 'Citizen Account';
+    const roleBadgeMr = role === 'operator' ? 'शासकीय अधिकारी खाते' : 'नागरिक खाते';
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7fc; margin: 0; padding: 20px; }
+            .email-card { max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e1e8f0; }
+            .header { background: linear-gradient(135deg, #1e3a8a, #0f172a); color: #ffffff; padding: 24px 20px; text-align: center; border-bottom: 3px solid #f59e0b; }
+            .header h1 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
+            .header p { margin: 6px 0 0; font-size: 13px; opacity: 0.9; color: #fed7aa; }
+            .role-badge { display: inline-block; background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fef3c7; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-top: 8px; }
+            .content { padding: 28px 24px; color: #333333; line-height: 1.6; }
+            .greeting { font-size: 15px; font-weight: 600; color: #1e293b; margin-top: 0; }
+            .otp-box { background: #fefce8; border: 2px dashed #d97706; border-radius: 8px; text-align: center; padding: 18px; margin: 20px 0; }
+            .otp-label { font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+            .otp-code { font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #b45309; margin: 0; font-family: monospace; }
+            .warning-box { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 14px; margin: 20px 0; border-radius: 4px; font-size: 13px; color: #991b1b; }
+            .warning-box p { margin: 0; }
+            .footer { background: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #e2e8f0; }
+        </style>
+    </head>
+    <body>
+        <div class="email-card">
+            <div class="header">
+                <h1>🏛️ ग्रामपंचायत समस्या निवारण</h1>
+                <p>Government of Maharashtra • Password Reset Request</p>
+                <div class="role-badge">${roleBadge} / ${roleBadgeMr}</div>
+            </div>
+            <div class="content">
+                <p class="greeting">Namaskar ${name ? `<strong>${name}</strong>` : ''},</p>
+                <p>We received a request to reset the password for your portal account. Use the One-Time Password (OTP) below to proceed with resetting your password:</p>
+                
+                <div class="otp-box">
+                    <div class="otp-label">Password Reset Code / पासवर्ड रीसेट कोड</div>
+                    <p class="otp-code">${otp}</p>
+                </div>
+
+                <p>हा OTP पुढील <strong>10 मिनिटांसाठी</strong> वैध आहे. सुरक्षिततेसाठी हा कोणाशीही शेअर करू नका.</p>
+                <p>This code is valid for <strong>10 minutes</strong>. For your security, do NOT share this OTP with anyone.</p>
+
+                <div class="warning-box">
+                    <p><strong>⚠️ Security Alert:</strong> If you did NOT request a password reset, your account may be secure, but you should check your login credentials immediately.</p>
+                </div>
+            </div>
+            <div class="footer">
+                &copy; Government of Maharashtra | Gram Panchayat Samasya Nivaran Portal
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
+
+    const textContent = `🏛️ Gram Panchayat Samasya Nivaran - Password Reset\n\n` +
+        `Hello ${name},\n\n` +
+        `Your Password Reset OTP is: ${otp}\n\n` +
+        `Account Type: ${roleBadge}\n` +
+        `This OTP is valid for 10 minutes. Do NOT share it with anyone.\n\n` +
+        `If you did not request this, please ignore this email.`;
+
+    try {
+        const info = await mailTransporter.sendMail({
+            from: fromAddress,
+            to: toEmail,
+            subject: `[Security OTP] ${otp} is your Password Reset Code - Gram Panchayat Portal`,
+            text: textContent,
+            html: htmlContent
+        });
+
+        console.log(`✅ Password reset OTP email successfully delivered to ${toEmail} (Message ID: ${info.messageId})`);
+        return { success: true, messageId: info.messageId };
+    } catch (err) {
+        console.error(`❌ Failed to send password reset email to ${toEmail}:`, err.message);
+        return { success: false, error: err.message };
+    }
+}
+
 module.exports = {
     sendOtpEmail,
-    sendResolutionEmail
+    sendResolutionEmail,
+    sendPasswordResetOtpEmail
 };
+

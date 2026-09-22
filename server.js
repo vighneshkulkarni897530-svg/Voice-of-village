@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const { db } = require('./firebase');
-const { sendOtpEmail, sendResolutionEmail } = require('./emailService');
+const { sendOtpEmail, sendResolutionEmail, sendPasswordResetOtpEmail } = require('./emailService');
 
 const app = express();
 app.use(cors());
@@ -15,6 +15,7 @@ app.use(express.json({ limit: '10mb' }));
 /* ================== OTP STORE & UTILITIES ================== */
 // In-memory store: Map<email, { otp, expiresAt, verified, attempts, lastSentAt }>
 const otpStore = new Map();
+const passwordResetStore = new Map();
 
 // Periodic cleanup of expired OTPs (every 5 minutes)
 setInterval(() => {
@@ -24,7 +25,21 @@ setInterval(() => {
             otpStore.delete(email);
         }
     }
+    for (const [email, record] of passwordResetStore.entries()) {
+        if (record.expiresAt < now) {
+            passwordResetStore.delete(email);
+        }
+    }
 }, 5 * 60 * 1000);
+
+function maskEmail(email) {
+    if (!email || !email.includes('@')) return email;
+    const [name, domain] = email.split('@');
+    if (name.length <= 2) {
+        return name[0] + '*@' + domain;
+    }
+    return name[0] + '*'.repeat(Math.max(2, name.length - 2)) + name[name.length - 1] + '@' + domain;
+}
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -129,6 +144,194 @@ app.post('/api/verify-otp', async (req, res) => {
     } catch (err) {
         console.error('Verify OTP Error:', err);
         res.json({ success: false, error: 'Verification failed: ' + err.message });
+    }
+});
+
+/* ================== FORGOT PASSWORD: SEND RESET OTP ================== */
+app.post('/api/forgot-password/send-otp', async (req, res) => {
+    try {
+        let { emailOrUsername, role = 'citizen' } = req.body;
+
+        if (!emailOrUsername) {
+            return res.json({ success: false, error: 'Please enter your username or registered email address' });
+        }
+
+        const term = emailOrUsername.toLowerCase().trim();
+        const colName = role === 'operator' ? 'operators' : 'users';
+
+        let userDoc = null;
+        let userData = null;
+
+        // Try searching by email
+        let snapshot = await db.collection(colName).where('email', '==', term).limit(1).get();
+        if (!snapshot.empty) {
+            userDoc = snapshot.docs[0];
+            userData = userDoc.data();
+        } else {
+            // Try searching by username
+            snapshot = await db.collection(colName).where('username', '==', term).limit(1).get();
+            if (!snapshot.empty) {
+                userDoc = snapshot.docs[0];
+                userData = userDoc.data();
+            }
+        }
+
+        if (!userDoc || !userData) {
+            return res.json({
+                success: false,
+                error: `No ${role === 'operator' ? 'Government Officer' : 'Citizen'} account found matching '${emailOrUsername}'.`
+            });
+        }
+
+        const userEmail = (userData.email || '').toLowerCase().trim();
+        if (!userEmail || !EMAIL_REGEX.test(userEmail)) {
+            return res.json({
+                success: false,
+                error: 'This account does not have a registered email address on file. Please contact support.'
+            });
+        }
+
+        const now = Date.now();
+        const existing = passwordResetStore.get(userEmail);
+
+        // Cooldown check (30s)
+        if (existing && (now - (existing.lastSentAt || 0) < 30000)) {
+            const waitSec = Math.ceil((30000 - (now - existing.lastSentAt)) / 1000);
+            return res.json({ success: false, error: `Please wait ${waitSec}s before requesting another reset code.` });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const displayName = userData.fullname || userData.operatorname || userData.username;
+
+        // Store OTP with 10-minute validity
+        passwordResetStore.set(userEmail, {
+            otp,
+            expiresAt: now + 10 * 60 * 1000,
+            verified: false,
+            attempts: 0,
+            lastSentAt: now,
+            role,
+            docId: userDoc.id,
+            username: userData.username,
+            name: displayName
+        });
+
+        // Send Email
+        const mailResult = await sendPasswordResetOtpEmail(userEmail, otp, displayName, role);
+
+        if (!mailResult.success) {
+            return res.json({
+                success: false,
+                error: mailResult.error || 'Failed to deliver reset email. Please verify SMTP settings.'
+            });
+        }
+
+        console.log(`🔑 Password reset OTP sent to ${userEmail} (${userData.username})`);
+
+        res.json({
+            success: true,
+            message: `Password reset code sent to ${maskEmail(userEmail)}. Please check your inbox.`,
+            email: userEmail,
+            maskedEmail: maskEmail(userEmail)
+        });
+
+    } catch (err) {
+        console.error('Forgot Password Send OTP Error:', err);
+        res.json({ success: false, error: 'Failed to process request: ' + err.message });
+    }
+});
+
+/* ================== FORGOT PASSWORD: VERIFY OTP ================== */
+app.post('/api/forgot-password/verify-otp', async (req, res) => {
+    try {
+        let { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.json({ success: false, error: 'Email and 6-digit OTP code are required' });
+        }
+
+        email = email.toLowerCase().trim();
+        otp = otp.toString().trim();
+
+        const record = passwordResetStore.get(email);
+
+        if (!record) {
+            return res.json({ success: false, error: 'Reset session expired or not found. Please click "Send OTP"' });
+        }
+
+        if (Date.now() > record.expiresAt) {
+            passwordResetStore.delete(email);
+            return res.json({ success: false, error: 'Reset code has expired. Please request a new code.' });
+        }
+
+        if (record.attempts >= 5) {
+            passwordResetStore.delete(email);
+            return res.json({ success: false, error: 'Too many incorrect attempts. Please request a new OTP.' });
+        }
+
+        if (record.otp !== otp) {
+            record.attempts += 1;
+            return res.json({ success: false, error: 'Invalid verification code. Please check and try again.' });
+        }
+
+        record.verified = true;
+        console.log(`✅ Password reset OTP verified for: ${email}`);
+
+        res.json({
+            success: true,
+            message: 'OTP verified successfully! Please enter your new password.'
+        });
+
+    } catch (err) {
+        console.error('Forgot Password Verify OTP Error:', err);
+        res.json({ success: false, error: 'Verification failed: ' + err.message });
+    }
+});
+
+/* ================== FORGOT PASSWORD: RESET PASSWORD ================== */
+app.post('/api/forgot-password/reset', async (req, res) => {
+    try {
+        let { email, otp, newPassword, role = 'citizen' } = req.body;
+
+        if (!email || !newPassword) {
+            return res.json({ success: false, error: 'Email and new password are required' });
+        }
+
+        email = email.toLowerCase().trim();
+        const record = passwordResetStore.get(email);
+
+        const isValidOtp = record && (record.verified || (otp && record.otp === otp.toString().trim() && Date.now() <= record.expiresAt));
+
+        if (!isValidOtp) {
+            return res.json({ success: false, error: 'Invalid or expired password reset session. Please request a new OTP.' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.json({ success: false, error: 'New password must be at least 6 characters long.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const colName = (role === 'operator' || record.role === 'operator') ? 'operators' : 'users';
+
+        await db.collection(colName).doc(record.docId).update({
+            password: hashedPassword,
+            updatedAt: new Date().toISOString()
+        });
+
+        // Clean up reset store
+        passwordResetStore.delete(email);
+
+        console.log(`🔒 Password successfully reset for ${record.username} (${email}) in ${colName}`);
+
+        res.json({
+            success: true,
+            message: 'Password has been updated successfully! You can now log in with your new password.'
+        });
+
+    } catch (err) {
+        console.error('Password Reset Error:', err);
+        res.json({ success: false, error: 'Failed to reset password: ' + err.message });
     }
 });
 
