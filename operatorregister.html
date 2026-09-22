@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Registration | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <a href="index.html" class="nav-link" data-i18n="home">Home</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="auth-wrapper">
+            <div class="auth-card" style="border-top: 6px solid var(--accent-saffron);">
+                <div class="auth-card-header">
+                    <div class="auth-card-icon" style="background:#fff7ed; border-color:#fed7aa;">🛡️</div>
+                    <h2 data-i18n="createOperatorAccount">Officer Registration</h2>
+                    <p data-en="Register authorized Gram Panchayat official profile" data-mr="अधिकृत ग्रामपंचायत अधिकारी खाते नोंदणी करा">Register authorized Gram Panchayat official profile</p>
+                </div>
+
+                <form id="operatorRegisterForm">
+                    <div class="form-group">
+                        <label for="operatorname" data-i18n="fullName">Officer Full Name</label>
+                        <input type="text" id="operatorname" name="operatorname" class="form-control" placeholder="e.g. Anand V. Deshmukh (Gram Sevak)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" data-i18n="email">Official Email</label>
+                        <div class="input-with-button">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="officer@mah.gov.in" required>
+                            <button type="button" id="sendOtpBtn" class="btn btn-outline btn-sm">
+                                <span data-i18n="sendOtp">Send OTP</span>
+                            </button>
+                        </div>
+                        <div id="verifiedBadge" style="display:none;" class="badge-verified-pill">
+                            <span data-i18n="verifiedBadge">✅ Email Verified</span>
+                        </div>
+                    </div>
+
+                    <!-- OTP Section -->
+                    <div id="otpSection" class="otp-panel">
+                        <label style="font-size:0.85rem; font-weight:700; color:var(--accent-saffron);" data-en="Enter 6-Digit Verification OTP" data-mr="६-अंकी ईमेल ओटीपी प्रविष्ट करा">Enter 6-Digit Verification OTP</label>
+                        <div class="input-with-button" style="margin-top:6px;">
+                            <input type="text" id="otpInput" class="form-control otp-code-input" placeholder="------" maxlength="6" pattern="[0-9]{6}">
+                            <button type="button" id="verifyOtpBtn" class="btn btn-success btn-sm">
+                                <span data-i18n="verifyOtp">Verify</span>
+                            </button>
+                        </div>
+                        <div class="otp-meta">
+                            <span id="resendCountdown">Resend in 60s</span>
+                            <button type="button" id="resendLink" class="resend-btn" style="display:none;">Resend OTP</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobile" data-i18n="mobileNumber">Official Mobile Number (10 digits)</label>
+                        <input type="tel" id="mobile" name="mobile" class="form-control" placeholder="9822000000" maxlength="10" pattern="[0-9]{10}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opCode" data-i18n="operatorCode">Department Security Code</label>
+                        <input type="password" id="opCode" name="opCode" class="form-control" placeholder="Enter department secret code (12345678)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username" data-i18n="username">Official Username</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Choose officer login username" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" data-i18n="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="Minimum 6 characters" required autocomplete="new-password">
+                    </div>
+
+                    <button type="submit" id="opRegisterSubmitBtn" class="btn btn-saffron btn-block" style="margin-top:14px;">
+                        <span data-i18n="register">Register Officer Account</span> →
+                    </button>
+                </form>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); text-align: center; font-size: 0.88rem;">
+                    <p style="color: var(--text-muted);">
+                        <span data-i18n="alreadyHaveAccount">Already have an account?</span>
+                        <a href="operatorlogin.html" style="color: var(--accent-saffron); font-weight: 700;" data-i18n="login">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        let isEmailVerified = false;
+        let countdownInterval = null;
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        const emailInput = document.getElementById('email');
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const otpSection = document.getElementById('otpSection');
+        const otpInput = document.getElementById('otpInput');
+        const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+        const resendCountdown = document.getElementById('resendCountdown');
+        const resendLink = document.getElementById('resendLink');
+        const verifiedBadge = document.getElementById('verifiedBadge');
+        const registerSubmitBtn = document.getElementById('opRegisterSubmitBtn');
+
+        function startCountdown(seconds = 60) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            resendLink.style.display = 'none';
+            resendCountdown.style.display = 'inline';
+            let remaining = seconds;
+            resendCountdown.textContent = `Resend in ${remaining}s`;
+
+            countdownInterval = setInterval(() => {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    resendCountdown.style.display = 'none';
+                    resendLink.style.display = 'inline';
+                } else {
+                    resendCountdown.textContent = `Resend in ${remaining}s`;
+                }
+            }, 1000);
+        }
+
+        async function handleSendOtp() {
+            const email = emailInput.value.trim().toLowerCase();
+            if (!email || !EMAIL_REGEX.test(email)) {
+                Toast.show('Please enter a valid official email address.', 'warning');
+                emailInput.focus();
+                return;
+            }
+
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/send-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    Toast.show(`Verification code sent to ${email}`, 'success');
+                    otpSection.classList.add('active');
+                    otpInput.focus();
+                    startCountdown(60);
+                } else {
+                    Toast.show(data.error || 'Failed to send verification code', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show('Cannot reach server to send code.', 'error');
+            } finally {
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = 'Send OTP';
+            }
+        }
+
+        async function handleVerifyOtp() {
+            const email = emailInput.value.trim().toLowerCase();
+            const otp = otpInput.value.trim();
+
+            if (!otp || otp.length !== 6) {
+                Toast.show('Please enter the 6-digit OTP code', 'warning');
+                otpInput.focus();
+                return;
+            }
+
+            verifyOtpBtn.disabled = true;
+            verifyOtpBtn.textContent = 'Verifying...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    isEmailVerified = true;
+                    Toast.show('Officer email verified!', 'success');
+                    otpSection.classList.remove('active');
+                    verifiedBadge.style.display = 'inline-flex';
+                    emailInput.readOnly = true;
+                    sendOtpBtn.style.display = 'none';
+                } else {
+                    Toast.show(data.error || 'Invalid OTP code', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show('Verification failed. Server error.', 'error');
+            } finally {
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.textContent = 'Verify';
+            }
+        }
+
+        sendOtpBtn.addEventListener('click', handleSendOtp);
+        resendLink.addEventListener('click', handleSendOtp);
+        verifyOtpBtn.addEventListener('click', handleVerifyOtp);
+
+        document.getElementById('operatorRegisterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const operatorname = this.operatorname.value.trim();
+            const email = this.email.value.trim().toLowerCase();
+            const mobile = this.mobile.value.trim();
+            const opCode = this.opCode.value.trim();
+            const username = this.username.value.trim().toLowerCase();
+            const password = this.password.value;
+
+            if (email && !isEmailVerified) {
+                Toast.show('Please verify your official email with OTP first.', 'warning');
+                if (!otpSection.classList.contains('active')) {
+                    handleSendOtp();
+                }
+                otpInput.focus();
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(mobile)) {
+                Toast.show('Please enter a valid 10-digit mobile number.', 'warning');
+                return;
+            }
+
+            if (opCode !== '12345678') {
+                Toast.show('Invalid Department Security Code. Check credentials.', 'error');
+                return;
+            }
+
+            registerSubmitBtn.disabled = true;
+            registerSubmitBtn.innerHTML = 'Creating Official Account...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/operator/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ operatorname, email, mobile, opCode, username, password, otp: otpInput.value.trim() })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    Toast.show('Officer account registered successfully! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'operatorlogin.html';
+                    }, 1200);
+                } else {
+                    Toast.show(data.error || 'Officer registration failed', 'error');
+                    registerSubmitBtn.disabled = false;
+                    registerSubmitBtn.innerHTML = 'Register Officer Account →';
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show('Server communication error.', 'error');
+                registerSubmitBtn.disabled = false;
+                registerSubmitBtn.innerHTML = 'Register Officer Account →';
+            }
+        });
+    </script>
+</body>
+</html>

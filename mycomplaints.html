@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grievances | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <div id="navUserDisplay"></div>
+                <a href="upload.html" class="btn btn-saffron btn-sm">
+                    <span>➕</span> <span data-i18n="reportProblem">File Grievance</span>
+                </a>
+                <button onclick="Auth.logout()" class="btn btn-outline btn-sm" data-i18n="logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- Dashboard Hero -->
+        <div class="page-hero">
+            <h1 data-i18n="myComplaints">My Grievances Dashboard</h1>
+            <p>Track the real-time review, investigation, and resolution progress of your registered village complaints.</p>
+            <div class="jurisdiction-badge" id="citizenJurisdictionPill">
+                📍 Assigned Village: <span id="citizenAreaText">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Realtime Auto-Updating KPI Stats -->
+        <div class="live-indicator-wrapper">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span data-en="Live Realtime Tracking" data-mr="थेट स्वयंचलित ट्रॅकिंग">Live Realtime Tracking</span>
+            </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-icon total">📋</div>
+                <div class="stat-content">
+                    <h3 id="statUserTotal">0</h3>
+                    <p data-i18n="totalComplaints">Total Filed</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon resolved">✅</div>
+                <div class="stat-content">
+                    <h3 id="statUserResolved">0</h3>
+                    <p data-i18n="resolvedComplaints">Resolved</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon progress">⚙️</div>
+                <div class="stat-content">
+                    <h3 id="statUserProgress">0</h3>
+                    <p data-i18n="inProgressComplaints">Under Investigation</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">⏳</div>
+                <div class="stat-content">
+                    <h3 id="statUserPending">0</h3>
+                    <p data-i18n="pendingComplaints">Pending Review</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complaints Table Card -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-search-box">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search your grievances..." data-i18n="searchPlaceholder">
+                    <select id="statusFilter" class="form-select" style="max-width:180px;">
+                        <option value="all">All Statuses / सर्व</option>
+                        <option value="pending">Pending / प्रलंबित</option>
+                        <option value="in-progress">In Progress / प्रक्रियेत</option>
+                        <option value="completed">Resolved / पूर्ण</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="button" id="refreshComplaintsBtn" class="btn btn-outline btn-sm">
+                        🔄 Refresh
+                    </button>
+                    <a href="upload.html" class="btn btn-primary btn-sm">
+                        ➕ <span data-i18n="reportProblem">File New Grievance</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="gov-table" id="complaintsTable">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">#</th>
+                            <th>Date / दिनांक</th>
+                            <th>Problem Description / वर्णन</th>
+                            <th>Location / ठिकाण</th>
+                            <th>Village & Taluka</th>
+                            <th>Evidence Photo</th>
+                            <th>Status / स्थिती</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complaintsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">
+                                Loading your grievances...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        if (!Auth.requireCitizenAuth()) {
+            // will redirect
+        }
+
+        const user = Auth.getUser() || {};
+        const district = sessionStorage.getItem('district') || '';
+        const taluka = sessionStorage.getItem('taluka') || '';
+        const village = sessionStorage.getItem('village') || '';
+
+        if (village && district) {
+            document.getElementById('citizenAreaText').textContent = `${village}, ${taluka}, ${district}`;
+        } else {
+            document.getElementById('citizenJurisdictionPill').style.display = 'none';
+        }
+
+        let allComplaints = [];
+
+        async function fetchUserComplaints() {
+            const tbody = document.getElementById('complaintsTableBody');
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">Loading grievances...</td></tr>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/mycomplaints/${encodeURIComponent(user.username)}`);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.complaints)) {
+                    allComplaints = data.complaints;
+                    renderComplaints();
+                    updateCounters(allComplaints);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">${data.error || 'Failed to load grievances'}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--accent-red);">Unable to connect to server.</td></tr>`;
+            }
+        }
+
+        function updateCounters(list) {
+            const total = list.length;
+            const resolved = list.filter(c => c.status === 'completed' || c.status === 'resolved').length;
+            const progress = list.filter(c => c.status === 'in-progress' || c.status === 'progress').length;
+            const pending = Math.max(0, total - resolved - progress);
+
+            LiveStats.updateElement('statUserTotal', total);
+            LiveStats.updateElement('statUserResolved', resolved);
+            LiveStats.updateElement('statUserProgress', progress);
+            LiveStats.updateElement('statUserPending', pending);
+        }
+
+        function renderComplaints() {
+            const tbody = document.getElementById('complaintsTableBody');
+            const search = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filter = document.getElementById('statusFilter').value;
+
+            const filtered = allComplaints.filter(c => {
+                const matchStatus = filter === 'all' || 
+                    (filter === 'completed' && (c.status === 'completed' || c.status === 'resolved')) ||
+                    (filter === 'in-progress' && (c.status === 'in-progress' || c.status === 'progress')) ||
+                    (filter === 'pending' && (c.status === 'pending' || !c.status));
+
+                const textContent = `${c.comment || ''} ${c.location || ''} ${c.village || ''} ${c.taluka || ''} ${c.district || ''}`.toLowerCase();
+                const matchSearch = !search || textContent.includes(search);
+
+                return matchStatus && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:48px 20px;">
+                            <div style="font-size:2.5rem; margin-bottom:8px;">📭</div>
+                            <h4 style="color:var(--text-dark); margin-bottom:4px;" data-i18n="noComplaintsFound">No grievances registered yet.</h4>
+                            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:16px;">Have a village problem? Click below to file a new grievance.</p>
+                            <a href="upload.html" class="btn btn-primary btn-sm">➕ File a Grievance</a>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach((comp, idx) => {
+                const tr = document.createElement('tr');
+                const compId = comp.id || comp._id;
+                
+                // Date formatting
+                const dateStr = comp.createdAt ? new Date(comp.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+                
+                // Status badge
+                let statusClass = 'status-pending';
+                let statusLabel = 'Pending Review';
+                if (comp.status === 'completed' || comp.status === 'resolved') {
+                    statusClass = 'status-resolved';
+                    statusLabel = 'Resolved';
+                } else if (comp.status === 'in-progress' || comp.status === 'progress') {
+                    statusClass = 'status-progress';
+                    statusLabel = 'In Progress';
+                }
+
+                // Image element
+                const imgHtml = comp.imageDataUrl 
+                    ? `<img src="${comp.imageDataUrl}" alt="Proof" class="table-img-thumb" onclick="Modal.openImage('${comp.imageDataUrl}', 'Grievance Proof: ${escapeHtml(comp.location || '')}')" title="Click to enlarge">`
+                    : `<span style="color:var(--text-muted); font-size:0.8rem;">No photo</span>`;
+
+                tr.innerHTML = `
+                    <td style="font-weight:700; color:var(--text-muted);">${idx + 1}</td>
+                    <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-muted);">${dateStr}</td>
+                    <td style="max-width:280px; font-weight:600; color:var(--text-dark);">${escapeHtml(comp.comment || '')}</td>
+                    <td style="font-size:0.88rem;">${escapeHtml(comp.location || '')}</td>
+                    <td style="font-size:0.85rem; color:var(--text-medium);">${escapeHtml(comp.village || '')}, ${escapeHtml(comp.taluka || '')}</td>
+                    <td>${imgHtml}</td>
+                    <td><span class="badge-status ${statusClass}">${statusLabel}</span></td>
+                    <td style="text-align:center;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="handleDeleteComplaint('${compId}')" title="Delete grievance" style="color:var(--accent-red); border-color:#fecaca;">
+                            🗑️
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function handleDeleteComplaint(id) {
+            if (!id) return;
+            Modal.confirm('Are you sure you want to delete this grievance? This cannot be undone.', async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/complaints/${id}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        Toast.show('Grievance deleted successfully.', 'success');
+                        fetchUserComplaints();
+                    } else {
+                        Toast.show(data.error || 'Failed to delete grievance', 'error');
+                    }
+                } catch (err) {
+                    Toast.show('Error connecting to server', 'error');
+                }
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderComplaints);
+        document.getElementById('statusFilter').addEventListener('change', renderComplaints);
+        document.getElementById('refreshComplaintsBtn').addEventListener('click', fetchUserComplaints);
+
+        fetchUserComplaints();
+
+        // Automatic background live refresh every 3.5 seconds
+        setInterval(() => {
+            fetchUserComplaints();
+        }, 3500);
+    </script>
+</body>
+</html>

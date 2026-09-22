@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Login | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <a href="index.html" class="nav-link" data-i18n="home">Home</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="auth-wrapper">
+            <div class="auth-card" style="border-top: 6px solid var(--accent-saffron);">
+                <div class="auth-card-header">
+                    <div class="auth-card-icon" style="background:#fff7ed; border-color:#fed7aa;">🛡️</div>
+                    <h2 data-i18n="operatorLoginTitle">Government Officer Login</h2>
+                    <p data-i18n="operatorLoginDesc">Authorized portal for Gram Sevak, Village Operators & Panchayat Officers.</p>
+                </div>
+
+                <form id="operatorLoginForm">
+                    <div class="form-group">
+                        <label for="username" data-i18n="username">Official Username</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Enter officer username" required autocomplete="username">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" data-i18n="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+
+                    <button type="submit" id="opLoginSubmitBtn" class="btn btn-saffron btn-block" style="margin-top: 12px;">
+                        <span data-i18n="login">Login as Officer</span> →
+                    </button>
+                </form>
+
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); text-align: center; font-size: 0.88rem;">
+                    <p style="color: var(--text-muted); margin-bottom: 8px;">
+                        <span data-i18n="dontHaveAccount">Don't have an account?</span>
+                        <a href="operatorregister.html" style="color: var(--accent-saffron); font-weight: 700;" data-i18n="createOperatorAccount">Register Official Account</a>
+                    </p>
+                    <p style="margin-top: 10px;">
+                        <a href="userlogin.html" style="color: var(--primary-light); font-weight: 600; font-size: 0.82rem;">
+                            👥 Switch to Citizen Login
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        document.getElementById('operatorLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('opLoginSubmitBtn');
+            const username = this.username.value.trim().toLowerCase();
+            const password = this.password.value;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Verifying credentials...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/operator/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (data.success && data.operator) {
+                    Auth.setOperator(data.operator);
+                    sessionStorage.setItem('operatorName', data.operator.operatorname);
+                    sessionStorage.setItem('operatorUsername', data.operator.username);
+                    Toast.show('Officer authentication successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'operatorafterlogin.html';
+                    }, 800);
+                } else {
+                    Toast.show(data.error || 'Invalid officer credentials', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Login as Officer →';
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show('Unable to connect to server. Please check backend status.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Login as Officer →';
+            }
+        });
+    </script>
+</body>
+</html>

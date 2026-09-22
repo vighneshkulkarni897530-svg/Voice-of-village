@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1777088394194",
+    "operatorname": "Test",
+    "username": "testop4",
+    "passwordHash": "9b8769a4a742959a2d0298c36fb70623f2dfacda8436237df08d8dfd5b37374c",
+    "mobile": "+919876543213",
+    "opCode": "12345678"
+  },
+  {
+    "id": "1777088475909",
+    "operatorname": "vighnesh",
+    "username": "vighnesh",
+    "passwordHash": "3ea87a56da3844b420ec2925ae922bc731ec16a4fc44dcbeafdad49b0e61d39c",
+    "mobile": "+917391010883",
+    "opCode": "12345678"
+  },
+  {
+    "id": "doc_1789552448718_vu404",
+    "_id": "doc_1789552448718_vu404",
+    "operatorname": "Vighnesh Kulkarni",
+    "email": "vighneshkulkarni897530@gmail.com",
+    "username": "vighneshkulkarni897530@gmail.com",
+    "password": "$2b$10$BzMAko.Xcp8pqh2qHi3j4.Yeqi9/JA3NVybanTs.2qgBZ/lMQ/Pw2",
+    "mobile": "+918600953409",
+    "opCode": "12345678",
+    "createdAt": "2026-09-16T09:54:08.717Z"
+  }
+]

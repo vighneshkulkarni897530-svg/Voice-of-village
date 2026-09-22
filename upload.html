@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Grievance | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <div id="navUserDisplay"></div>
+                <a href="mycomplaints.html" class="nav-link" data-i18n="myComplaints">My Complaints</a>
+                <button onclick="Auth.logout()" class="btn btn-outline btn-sm" data-i18n="logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- Hero Header -->
+        <div class="page-hero">
+            <h1 data-i18n="reportNewTitle">File a New Grievance</h1>
+            <p data-i18n="reportNewSubtitle">Submit village issues directly to the local Gram Panchayat authority for prompt resolution.</p>
+            <div class="jurisdiction-badge" id="currentAreaBadge">
+                📍 Location: <span id="badgeLocationText">Loading...</span>
+                <a href="afterlogin.html" style="color:#ffffff; text-decoration:underline; font-weight:700; margin-left:8px;">(Change)</a>
+            </div>
+        </div>
+
+        <div class="auth-wrapper" style="min-height:auto;">
+            <div class="auth-card" style="max-width: 680px;">
+                <form id="grievanceForm">
+                    <div class="form-group">
+                        <label for="categorySelect" data-i18n="category">Grievance Category</label>
+                        <select id="categorySelect" name="category" class="form-select" required>
+                            <option value="Water Supply">🚰 Drinking Water & Pipeline Issue (पाणीपुरवठा)</option>
+                            <option value="Sanitation">🧹 Sanitation, Drainage & Garbage (स्वच्छता व सांडपाणी)</option>
+                            <option value="Roads & Transport">🛣️ Village Roads & Potholes (रस्ते व वाहतूक)</option>
+                            <option value="Electricity">💡 Street Lights & Power Supply (विद्युत व दिवाबत्ती)</option>
+                            <option value="Health">🏥 Primary Health Center / Clinic (आरोग्य सुविधा)</option>
+                            <option value="Education">🏫 Z.P. School / Anganwadi (शिक्षण व शाळा)</option>
+                            <option value="Encroachment">🚫 Public Land Encroachment (अतिक्रमण)</option>
+                            <option value="Other">📌 Other Administrative Issue (इतर समस्या)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="locationInput" data-i18n="locationLandmark">Specific Landmark / Ward / Street</label>
+                        <input type="text" id="locationInput" name="location" class="form-control" placeholder="e.g. Near Z.P. Primary School, Ward No. 3" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="commentInput" data-i18n="comment">Detailed Description of Problem</label>
+                        <textarea id="commentInput" name="comment" class="form-control" placeholder="Please describe the grievance in detail (समस्येचे सविस्तर वर्णन करा)..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label data-i18n="uploadPhoto">Upload Photo Evidence (Optional)</label>
+                        <div class="file-dropzone" id="dropzoneArea">
+                            <div class="dropzone-icon">📷</div>
+                            <p style="font-weight:600; color:var(--text-medium); margin-bottom:4px;" data-i18n="dragDropPhoto">Click or Drag & Drop photo here (Max 5MB)</p>
+                            <p style="font-size:0.8rem; color:var(--text-muted);">Supports JPG, PNG, WEBP</p>
+                            <input type="file" id="fileInputElem" accept="image/*" style="display:none;">
+                            
+                            <div id="dropzonePreviewWrapper" class="dropzone-preview" style="display:none;">
+                                <img id="dropzonePreviewImg" src="" alt="Selected photo" class="dropzone-img">
+                                <button type="button" id="removeImgBtn" class="btn-remove-img" title="Remove photo">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitGrievanceBtn" class="btn btn-primary btn-block" style="margin-top:16px;">
+                        <span data-i18n="submitGrievance">Submit Grievance</span> →
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        // Check authentication
+        if (!Auth.requireCitizenAuth()) {
+            // will redirect
+        }
+
+        const district = sessionStorage.getItem('district') || '';
+        const taluka = sessionStorage.getItem('taluka') || '';
+        const village = sessionStorage.getItem('village') || '';
+        const user = Auth.getUser() || {};
+
+        if (!district || !taluka || !village) {
+            Toast.show('Please select your village jurisdiction first.', 'warning');
+            setTimeout(() => {
+                window.location.href = 'afterlogin.html';
+            }, 1000);
+        } else {
+            document.getElementById('badgeLocationText').textContent = `${village}, Taluka: ${taluka}, District: ${district}`;
+        }
+
+        let selectedImageDataUrl = '';
+        let selectedImageName = '';
+
+        const dropzoneArea = document.getElementById('dropzoneArea');
+        const fileInputElem = document.getElementById('fileInputElem');
+        const previewWrapper = document.getElementById('dropzonePreviewWrapper');
+        const previewImg = document.getElementById('dropzonePreviewImg');
+        const removeImgBtn = document.getElementById('removeImgBtn');
+        const submitBtn = document.getElementById('submitGrievanceBtn');
+
+        dropzoneArea.addEventListener('click', (e) => {
+            if (e.target !== removeImgBtn) {
+                fileInputElem.click();
+            }
+        });
+
+        // Drag and drop handlers
+        ['dragenter', 'dragover'].forEach(name => {
+            dropzoneArea.addEventListener(name, (e) => {
+                e.preventDefault();
+                dropzoneArea.style.borderColor = 'var(--primary-light)';
+                dropzoneArea.style.background = '#eff6ff';
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(name => {
+            dropzoneArea.addEventListener(name, (e) => {
+                e.preventDefault();
+                dropzoneArea.style.borderColor = '#cbd5e1';
+                dropzoneArea.style.background = '#f8fafc';
+            });
+        });
+
+        dropzoneArea.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processFile(files[0]);
+        });
+
+        fileInputElem.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                processFile(this.files[0]);
+            }
+        });
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                Toast.show('Please select a valid image file (JPG, PNG).', 'warning');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                Toast.show('Image size must be less than 5MB.', 'warning');
+                return;
+            }
+
+            selectedImageName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImageDataUrl = e.target.result;
+                previewImg.src = selectedImageDataUrl;
+                previewWrapper.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeImgBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectedImageDataUrl = '';
+            selectedImageName = '';
+            previewImg.src = '';
+            previewWrapper.style.display = 'none';
+            fileInputElem.value = '';
+        });
+
+        document.getElementById('grievanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const category = this.category.value;
+            const location = this.location.value.trim();
+            const comment = this.comment.value.trim();
+
+            const complaint = {
+                username: user.username || 'citizen',
+                fullname: user.fullname || user.username || 'Citizen',
+                email: user.email || '',
+                category,
+                comment: `[${category}] ${comment}`,
+                location,
+                district,
+                taluka,
+                village,
+                mobile: user.mobile || '',
+                status: 'pending',
+                imageName: selectedImageName,
+                imageDataUrl: selectedImageDataUrl,
+                completedPhotoDataUrl: '',
+                createdAt: new Date().toISOString()
+            };
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Submitting Grievance...';
+
+            try {
+                const res = await fetch(`${API_BASE}/api/complaints`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(complaint)
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    Toast.show('Grievance registered successfully! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'mycomplaints.html';
+                    }, 1200);
+                } else {
+                    Toast.show(result.error || 'Submission failed. Please try again.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Submit Grievance →';
+                }
+            } catch (err) {
+                console.error(err);
+                Toast.show('Cannot reach server. Please check backend status.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Submit Grievance →';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Jurisdiction Setup | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <div id="navUserDisplay"></div>
+                <button onclick="Auth.logout()" class="btn btn-outline btn-sm" data-i18n="logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <div class="auth-wrapper">
+            <div class="auth-card" style="max-width: 580px; border-top: 6px solid var(--accent-saffron);">
+                <div class="auth-card-header">
+                    <div class="auth-card-icon" style="background:#fff7ed; border-color:#fed7aa;">🗺️</div>
+                    <h2 data-en="Assigned Officer Jurisdiction" data-mr="अधिकारी कार्यक्षेत्र नियुक्ती">Assigned Officer Jurisdiction</h2>
+                    <p data-en="Select your assigned administrative District & Taluka to review local village grievances." data-mr="स्थानिक ग्रामपंचायत तक्रारी पाहण्यासाठी आपला नियुक्त जिल्हा व तालुका निवडा.">Select your assigned administrative District & Taluka to review local village grievances.</p>
+                </div>
+
+                <form id="opJurisdictionForm">
+                    <div class="form-group">
+                        <label><strong>State / राज्य:</strong> <span style="color:var(--accent-saffron); font-weight:700;">Maharashtra (महाराष्ट्र)</span></label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opDistrictSelect" data-i18n="selectDistrict">Select District</label>
+                        <select id="opDistrictSelect" name="district" class="form-select" required>
+                            <option value="">-- Choose District / जिल्हा निवडा --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opTalukaSelect" data-i18n="selectTaluka">Select Taluka</label>
+                        <select id="opTalukaSelect" name="taluka" class="form-select" required disabled>
+                            <option value="">-- Choose District First --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="opVillageInput" data-en="Specific Gram Panchayat (Optional filter)" data-mr="विशिष्ट ग्रामपंचायत (पर्यायी फिल्टर)">Specific Gram Panchayat (Optional filter)</label>
+                        <input list="opVillagesDatalist" id="opVillageInput" name="village" class="form-control" placeholder="Leave blank to view all villages in taluka..." autocomplete="off" disabled>
+                        <datalist id="opVillagesDatalist"></datalist>
+                    </div>
+
+                    <div id="opJurisdictionPreview" style="display:none; background:#fff7ed; border:1px solid #fed7aa; border-radius:var(--radius-md); padding:12px; margin-bottom:16px; font-size:0.88rem;">
+                        <strong>Jurisdiction Scope:</strong> <span id="opPreviewText" style="color:var(--accent-saffron); font-weight:700;"></span>
+                    </div>
+
+                    <button type="submit" id="saveOpJurisdictionBtn" class="btn btn-saffron btn-block">
+                        <span data-en="Open Grievance Command Center" data-mr="तक्रार नियंत्रण कक्ष उघडा">Open Grievance Command Center</span> →
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        // Check operator authorization
+        Auth.requireOperatorAuth();
+
+        const districtSelect = document.getElementById('opDistrictSelect');
+        const talukaSelect = document.getElementById('opTalukaSelect');
+        const villageInput = document.getElementById('opVillageInput');
+        const villagesDatalist = document.getElementById('opVillagesDatalist');
+        const previewBox = document.getElementById('opJurisdictionPreview');
+        const previewText = document.getElementById('opPreviewText');
+
+        // Populate Districts
+        Object.keys(MAHARASHTRA_LOCATIONS).sort().forEach(dist => {
+            const opt = document.createElement('option');
+            opt.value = dist;
+            opt.textContent = dist;
+            districtSelect.appendChild(opt);
+        });
+
+        // Pre-fill if already in session
+        const savedDist = sessionStorage.getItem('operatorDistrict') || sessionStorage.getItem('district');
+        const savedTal = sessionStorage.getItem('operatorTaluka') || sessionStorage.getItem('taluka');
+        const savedVil = sessionStorage.getItem('operatorVillage') || sessionStorage.getItem('village');
+
+        if (savedDist && MAHARASHTRA_LOCATIONS[savedDist]) {
+            districtSelect.value = savedDist;
+            updateTalukas(savedDist);
+            if (savedTal) {
+                talukaSelect.value = savedTal;
+                updateVillages(savedDist, savedTal);
+                if (savedVil) {
+                    villageInput.value = savedVil;
+                }
+            }
+            updatePreview();
+        }
+
+        districtSelect.addEventListener('change', function() {
+            const dist = this.value;
+            talukaSelect.innerHTML = '<option value="">-- Choose Taluka / तालुका निवडा --</option>';
+            villageInput.value = '';
+            villagesDatalist.innerHTML = '';
+            previewBox.style.display = 'none';
+
+            if (!dist) {
+                talukaSelect.disabled = true;
+                villageInput.disabled = true;
+                return;
+            }
+
+            updateTalukas(dist);
+        });
+
+        function updateTalukas(dist) {
+            talukaSelect.disabled = false;
+            const data = MAHARASHTRA_LOCATIONS[dist];
+            if (data && data.talukas) {
+                data.talukas.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t;
+                    opt.textContent = t;
+                    talukaSelect.appendChild(opt);
+                });
+            }
+        }
+
+        talukaSelect.addEventListener('change', function() {
+            const dist = districtSelect.value;
+            const tal = this.value;
+            villageInput.value = '';
+            villagesDatalist.innerHTML = '';
+
+            if (!tal) {
+                villageInput.disabled = true;
+                return;
+            }
+
+            updateVillages(dist, tal);
+            updatePreview();
+        });
+
+        function updateVillages(dist, tal) {
+            villageInput.disabled = false;
+            const data = MAHARASHTRA_LOCATIONS[dist];
+            const villages = (data && data.villages) ? data.villages : [];
+
+            villagesDatalist.innerHTML = '';
+            villages.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                villagesDatalist.appendChild(opt);
+            });
+        }
+
+        villageInput.addEventListener('input', updatePreview);
+
+        function updatePreview() {
+            const dist = districtSelect.value;
+            const tal = talukaSelect.value;
+            const vil = villageInput.value.trim();
+
+            if (dist && tal) {
+                previewText.textContent = vil 
+                    ? `Specific Village: ${vil}, Taluka: ${tal}, District: ${dist}`
+                    : `All Gram Panchayats in Taluka: ${tal}, District: ${dist}`;
+                previewBox.style.display = 'block';
+            } else {
+                previewBox.style.display = 'none';
+            }
+        }
+
+        document.getElementById('opJurisdictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const district = districtSelect.value;
+            const taluka = talukaSelect.value;
+            const village = villageInput.value.trim();
+
+            if (!district || !taluka) {
+                Toast.show('Please select both District and Taluka.', 'warning');
+                return;
+            }
+
+            sessionStorage.setItem('state', 'Maharashtra');
+            sessionStorage.setItem('district', district);
+            sessionStorage.setItem('taluka', taluka);
+            sessionStorage.setItem('village', village);
+            sessionStorage.setItem('operatorDistrict', district);
+            sessionStorage.setItem('operatorTaluka', taluka);
+            sessionStorage.setItem('operatorVillage', village);
+            sessionStorage.setItem('isOperator', 'true');
+
+            Toast.show('Jurisdiction configured! Opening Command Center...', 'success');
+            setTimeout(() => {
+                window.location.href = 'operatorpanel.html';
+            }, 700);
+        });
+    </script>
+</body>
+</html>

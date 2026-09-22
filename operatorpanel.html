@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Command Center | Gram Panchayat Samasya Nivaran</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="gov-topbar"></div>
+
+    <header class="gov-header">
+        <div class="gov-header-inner">
+            <a href="index.html" class="gov-brand">
+                <img src="imageidea.jpeg" alt="Emblem of India" class="gov-emblem" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg'">
+                <div class="gov-titles">
+                    <span class="gov-title-main" data-i18n="portalTitle">Government of Maharashtra</span>
+                    <div class="gov-title-sub-row">
+                        <span class="gov-title-sub" data-i18n="portalSubTitle">Gram Panchayat Samasya Nivaran</span>
+                        <span class="gov-voice-badge" data-i18n="voiceOfVillageBadge">📢 Voice of Village</span>
+                    </div>
+                </div>
+            </a>
+            <div class="gov-header-actions">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" data-lang="en">English</button>
+                    <button class="lang-btn" data-lang="mr">मराठी</button>
+                </div>
+                <div id="navUserDisplay"></div>
+                <a href="operatorafterlogin.html" class="btn btn-outline btn-sm">
+                    📍 Change Jurisdiction
+                </a>
+                <button onclick="Auth.logout()" class="btn btn-outline btn-sm" data-i18n="logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- Officer Command Center Hero -->
+        <div class="page-hero" style="background: linear-gradient(135deg, #091e3a 0%, #1e3a8a 100%);">
+            <h1 data-i18n="operatorPanel">Officer Grievance Command Center</h1>
+            <p>Review, investigate, assign, and resolve village grievances submitted by citizens under your assigned jurisdiction.</p>
+            <div class="jurisdiction-badge" style="background:rgba(234,88,12,0.25); border-color:rgba(234,88,12,0.5);">
+                🛡️ Jurisdiction: <strong id="opJurisdictionText" style="margin-left:4px;">Loading...</strong>
+                <a href="operatorafterlogin.html" style="color:#ffffff; text-decoration:underline; margin-left:8px;">(Change)</a>
+            </div>
+        </div>
+
+        <!-- Realtime Auto-Updating KPI Stats -->
+        <div class="live-indicator-wrapper">
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span data-en="Live Realtime Metrics" data-mr="थेट स्वयंचलित आकडेवारी">Live Realtime Metrics</span>
+            </div>
+        </div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-icon total">📋</div>
+                <div class="stat-content">
+                    <h3 id="statOpTotal">0</h3>
+                    <p data-en="Total in Jurisdiction" data-mr="कार्यक्षेत्रातील एकूण तक्रारी">Total in Jurisdiction</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon resolved">✅</div>
+                <div class="stat-content">
+                    <h3 id="statOpResolved">0</h3>
+                    <p data-i18n="resolvedComplaints">Resolved</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon progress">⚙️</div>
+                <div class="stat-content">
+                    <h3 id="statOpProgress">0</h3>
+                    <p data-i18n="inProgressComplaints">Under Investigation</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pending">⏳</div>
+                <div class="stat-content">
+                    <h3 id="statOpPending">0</h3>
+                    <p data-i18n="pendingComplaints">Pending Review</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Complaints Table Card -->
+        <div class="table-card">
+            <div class="table-header-bar">
+                <div class="table-search-box">
+                    <input type="text" id="opSearchInput" class="form-control" placeholder="Search by citizen, keyword, location, ID...">
+                    <select id="opStatusFilter" class="form-select" style="max-width:180px;">
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="completed">Resolved</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button type="button" id="opRefreshBtn" class="btn btn-outline btn-sm">
+                        🔄 Refresh
+                    </button>
+                    <button type="button" id="printReportBtn" class="btn btn-outline btn-sm" onclick="window.print()">
+                        🖨️ Print Report
+                    </button>
+                    <button type="button" id="clearAllBtn" class="btn btn-danger btn-sm">
+                        🗑️ Clear Area Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="gov-table" id="opComplaintsTable">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th>Date</th>
+                            <th>Citizen Details</th>
+                            <th>Problem & Category</th>
+                            <th>Village & Landmark</th>
+                            <th>Citizen Proof</th>
+                            <th>Current Status</th>
+                            <th style="text-align:center; min-width:160px;">Officer Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="opComplaintsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">
+                                Loading jurisdiction grievances...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Resolution Modal -->
+    <div id="resolutionModal" class="gov-modal-overlay">
+        <div class="gov-modal-box">
+            <div class="gov-modal-header">
+                <h4 data-en="Complete Grievance Resolution" data-mr="तक्रार निवारण पूर्ण नोंदवा">Complete Grievance Resolution</h4>
+                <button class="gov-modal-close" onclick="closeResolutionModal()">&times;</button>
+            </div>
+            <div class="gov-modal-body">
+                <form id="resolutionForm">
+                    <input type="hidden" id="resolveComplaintId">
+                    <div class="form-group">
+                        <label data-en="Action Taken / Resolution Note" data-mr="केलेली कार्यवाही / शेरा">Action Taken / Resolution Note</label>
+                        <textarea id="resolutionNote" class="form-control" placeholder="Describe the resolution work done (e.g. Pipeline repaired, road pothole patched)..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Resolution Proof Photo (Optional)" data-mr="निवारणाचा पुरावा फोटो (पर्यायी)">Resolution Proof Photo (Optional)</label>
+                        <input type="file" id="resolutionPhotoInput" accept="image/*" class="form-control">
+                        <div id="resPhotoPreview" style="margin-top:8px; display:none;">
+                            <img id="resPhotoImg" src="" style="max-height:140px; border-radius:6px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+                        <button type="button" class="btn btn-outline" onclick="closeResolutionModal()">Cancel</button>
+                        <button type="submit" class="btn btn-success">✅ Mark as Resolved</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="gov-footer">
+        <div class="gov-footer-inner">
+            <p class="footer-credit" data-i18n="designedBy">Designed with ❤️ for Maharashtra Village Redressal — IDEA AVENGERS</p>
+            <p>© <span id="footerYear"></span> <span data-i18n="allRightsReserved">Government of Maharashtra. All rights reserved.</span></p>
+        </div>
+    </footer>
+
+    <script src="app-shared.js"></script>
+    <script>
+        document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+        if (!Auth.requireOperatorAuth()) {
+            // will redirect
+        }
+
+        const opDistrict = (sessionStorage.getItem('operatorDistrict') || sessionStorage.getItem('district') || '').trim();
+        const opTaluka = (sessionStorage.getItem('operatorTaluka') || sessionStorage.getItem('taluka') || '').trim();
+        const opVillage = (sessionStorage.getItem('operatorVillage') || sessionStorage.getItem('village') || '').trim();
+
+        if (!opDistrict || !opTaluka) {
+            Toast.show('Please select your officer jurisdiction first.', 'warning');
+            setTimeout(() => {
+                window.location.href = 'operatorafterlogin.html';
+            }, 800);
+        } else {
+            document.getElementById('opJurisdictionText').textContent = opVillage 
+                ? `${opVillage}, Taluka: ${opTaluka}, District: ${opDistrict}`
+                : `Taluka: ${opTaluka}, District: ${opDistrict} (All Villages)`;
+        }
+
+        let opAllComplaints = [];
+
+        async function fetchOperatorComplaints() {
+            const tbody = document.getElementById('opComplaintsTableBody');
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">Fetching jurisdiction complaints...</td></tr>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/complaints`);
+                const data = await res.json();
+
+                if (data.success && Array.isArray(data.complaints)) {
+                    // Filter complaints strictly for this operator's district & taluka
+                    const opDistNorm = opDistrict.toLowerCase().replace(/aurangabad|chhatrapati sambhajinagar/g, 'aurangabad');
+                    const opTalNorm = opTaluka.toLowerCase();
+                    const opVilNorm = opVillage.toLowerCase();
+
+                    opAllComplaints = data.complaints.filter(c => {
+                        if (!c.district || !c.taluka) return false;
+                        const cDistNorm = c.district.toLowerCase().replace(/aurangabad|chhatrapati sambhajinagar/g, 'aurangabad');
+                        const cTalNorm = c.taluka.toLowerCase();
+                        const cVilNorm = (c.village || '').toLowerCase();
+
+                        const matchDist = cDistNorm.includes(opDistNorm) || opDistNorm.includes(cDistNorm);
+                        const matchTal = cTalNorm === opTalNorm;
+                        const matchVil = !opVilNorm || cVilNorm.includes(opVilNorm);
+
+                        return matchDist && matchTal && matchVil;
+                    });
+
+                    renderOpComplaints();
+                    updateOpCounters(opAllComplaints);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-muted);">${data.error || 'No complaints found'}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--accent-red);">Server communication error.</td></tr>`;
+            }
+        }
+
+        function updateOpCounters(list) {
+            const total = list.length;
+            const resolved = list.filter(c => c.status === 'completed' || c.status === 'resolved').length;
+            const progress = list.filter(c => c.status === 'in-progress' || c.status === 'progress').length;
+            const pending = Math.max(0, total - resolved - progress);
+
+            LiveStats.updateElement('statOpTotal', total);
+            LiveStats.updateElement('statOpResolved', resolved);
+            LiveStats.updateElement('statOpProgress', progress);
+            LiveStats.updateElement('statOpPending', pending);
+        }
+
+        function renderOpComplaints() {
+            const tbody = document.getElementById('opComplaintsTableBody');
+            const search = document.getElementById('opSearchInput').value.trim().toLowerCase();
+            const filter = document.getElementById('opStatusFilter').value;
+
+            const filtered = opAllComplaints.filter(c => {
+                const matchStatus = filter === 'all' || 
+                    (filter === 'completed' && (c.status === 'completed' || c.status === 'resolved')) ||
+                    (filter === 'in-progress' && (c.status === 'in-progress' || c.status === 'progress')) ||
+                    (filter === 'pending' && (c.status === 'pending' || !c.status));
+
+                const textContent = `${c.comment || ''} ${c.location || ''} ${c.village || ''} ${c.username || ''} ${c.mobile || ''}`.toLowerCase();
+                const matchSearch = !search || textContent.includes(search);
+
+                return matchStatus && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:48px 20px;">
+                            <div style="font-size:2.5rem; margin-bottom:8px;">✅</div>
+                            <h4 style="color:var(--text-dark); margin-bottom:4px;">No Grievances Found in Selected Jurisdiction</h4>
+                            <p style="font-size:0.88rem; color:var(--text-muted);">All village issues in this area are resolved or no complaints submitted yet.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = '';
+            filtered.forEach((comp, idx) => {
+                const tr = document.createElement('tr');
+                const compId = comp.id || comp._id;
+                const dateStr = comp.createdAt ? new Date(comp.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+
+                // Status badge
+                let statusClass = 'status-pending';
+                let statusLabel = 'Pending Review';
+                const isCompleted = comp.status === 'completed' || comp.status === 'resolved';
+                const isInProgress = comp.status === 'in-progress' || comp.status === 'progress';
+
+                if (isCompleted) {
+                    statusClass = 'status-resolved';
+                    statusLabel = 'Resolved';
+                } else if (isInProgress) {
+                    statusClass = 'status-progress';
+                    statusLabel = 'In Progress';
+                }
+
+                // Image Element
+                const imgHtml = comp.imageDataUrl 
+                    ? `<img src="${comp.imageDataUrl}" alt="Proof" class="table-img-thumb" onclick="Modal.openImage('${comp.imageDataUrl}', 'Grievance Proof: ${escapeHtml(comp.location || '')}')" title="Click to view full photo">`
+                    : `<span style="color:var(--text-muted); font-size:0.8rem;">No photo</span>`;
+
+                // Actions Column
+                let actionHtml = '';
+                if (isCompleted) {
+                    actionHtml = `<span style="color:var(--accent-green); font-weight:700; font-size:0.85rem;">✅ Resolved</span>`;
+                } else {
+                    actionHtml = `
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            ${!isInProgress ? `<button type="button" class="btn btn-outline btn-sm" onclick="updateComplaintStatus('${compId}', 'in-progress')" style="color:var(--primary-blue);">⚙️ Mark In-Progress</button>` : ''}
+                            <button type="button" class="btn btn-success btn-sm" onclick="openResolutionModal('${compId}')">
+                                ✅ Mark Resolved
+                            </button>
+                        </div>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td style="font-weight:700; color:var(--text-muted);">${idx + 1}</td>
+                    <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-muted);">${dateStr}</td>
+                    <td>
+                        <strong style="color:var(--text-dark);">${escapeHtml(comp.fullname || comp.username || 'Citizen')}</strong><br>
+                        <small style="color:var(--text-muted);">${comp.mobile ? `📞 ${comp.mobile}` : 'No phone'}</small>
+                    </td>
+                    <td style="max-width:240px; font-weight:600; color:var(--text-dark);">${escapeHtml(comp.comment || '')}</td>
+                    <td>
+                        <strong>${escapeHtml(comp.village || '')}</strong><br>
+                        <small style="color:var(--text-muted);">${escapeHtml(comp.location || '')}</small>
+                    </td>
+                    <td>${imgHtml}</td>
+                    <td><span class="badge-status ${statusClass}">${statusLabel}</span></td>
+                    <td style="text-align:center;">${actionHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        async function updateComplaintStatus(id, newStatus, completedPhotoDataUrl = '', resolutionNote = '') {
+            const officerName = sessionStorage.getItem('operatorName') || sessionStorage.getItem('operatorUsername') || 'Gram Panchayat Officer';
+            try {
+                const res = await fetch(`${API_BASE}/api/complaints/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        completedPhotoDataUrl,
+                        resolutionNote,
+                        officerName
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (newStatus === 'completed') {
+                        Toast.show('✅ Grievance Marked as Resolved! Notification email sent to citizen.', 'success', 5000);
+                    } else {
+                        Toast.show(`Complaint updated to: ${newStatus}`, 'success');
+                    }
+                    fetchOperatorComplaints();
+                } else {
+                    Toast.show(data.error || 'Update failed', 'error');
+                }
+            } catch (err) {
+                Toast.show('Error updating complaint status', 'error');
+            }
+        }
+
+        // Resolution Modal Handler
+        let resPhotoDataUrl = '';
+        const resolutionModal = document.getElementById('resolutionModal');
+        const resPhotoInput = document.getElementById('resolutionPhotoInput');
+        const resPhotoPreview = document.getElementById('resPhotoPreview');
+        const resPhotoImg = document.getElementById('resPhotoImg');
+
+        function openResolutionModal(id) {
+            document.getElementById('resolveComplaintId').value = id;
+            document.getElementById('resolutionNote').value = '';
+            resPhotoDataUrl = '';
+            resPhotoInput.value = '';
+            resPhotoPreview.style.display = 'none';
+            resolutionModal.classList.add('active');
+        }
+
+        function closeResolutionModal() {
+            resolutionModal.classList.remove('active');
+        }
+
+        resPhotoInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    resPhotoDataUrl = e.target.result;
+                    resPhotoImg.src = resPhotoDataUrl;
+                    resPhotoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        document.getElementById('resolutionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('resolveComplaintId').value;
+            const note = document.getElementById('resolutionNote').value.trim();
+
+            closeResolutionModal();
+            updateComplaintStatus(id, 'completed', resPhotoDataUrl, note);
+        });
+
+        // Clear All Action
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            Modal.confirm('Are you sure you want to clear ALL complaints in the system? This action is permanent.', async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/clearComplaints`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        Toast.show('Complaints cleared successfully.', 'success');
+                        fetchOperatorComplaints();
+                    } else {
+                        Toast.show('Clear failed', 'error');
+                    }
+                } catch (err) {
+                    Toast.show('Error clearing data', 'error');
+                }
+            });
+        });
+
+        document.getElementById('opSearchInput').addEventListener('input', renderOpComplaints);
+        document.getElementById('opStatusFilter').addEventListener('change', renderOpComplaints);
+        document.getElementById('opRefreshBtn').addEventListener('click', fetchOperatorComplaints);
+
+        fetchOperatorComplaints();
+
+        // Automatic background live refresh every 3.5 seconds
+        setInterval(() => {
+            fetchOperatorComplaints();
+        }, 3500);
+    </script>
+</body>
+</html>
+
