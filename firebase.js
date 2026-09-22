@@ -2,27 +2,62 @@ require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 
+const os = require('os');
+
 let db = null;
 let isCloudFirebase = false;
 
 /* =========================================================================
    LOCAL FIRESTORE COMPATIBILITY STORE (Zero-Config Fallback)
    ========================================================================= */
-const dataDir = path.join(__dirname, 'data');
+function getWritableDataDir() {
+    const localDir = path.join(__dirname, 'data');
+    // If running in serverless / Vercel (read-only filesystem), write to /tmp
+    if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        const tmpDir = path.join(os.tmpdir(), 'voice-of-village-data');
+        if (!fs.existsSync(tmpDir)) {
+            try {
+                fs.mkdirSync(tmpDir, { recursive: true });
+                if (fs.existsSync(localDir)) {
+                    const files = fs.readdirSync(localDir);
+                    for (const f of files) {
+                        if (f.endsWith('.json')) {
+                            try {
+                                fs.copyFileSync(path.join(localDir, f), path.join(tmpDir, f));
+                            } catch (err) {}
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+        return tmpDir;
+    }
+    return localDir;
+}
+
+const dataDir = getWritableDataDir();
+
 function ensureDir() {
-    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    try {
+        if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    } catch (e) {}
 }
 
 function getColFile(col) {
     ensureDir();
     const filePath = path.join(dataDir, `${col}.json`);
-    if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, '[]');
+    if (!fs.existsSync(filePath)) {
+        try {
+            fs.writeFileSync(filePath, '[]');
+        } catch (e) {}
+    }
     return filePath;
 }
 
 function readCol(col) {
     try {
         const filePath = getColFile(col);
+        if (!fs.existsSync(filePath)) return [];
         return JSON.parse(fs.readFileSync(filePath, 'utf8') || '[]');
     } catch (e) {
         return [];
@@ -30,8 +65,12 @@ function readCol(col) {
 }
 
 function writeCol(col, items) {
-    ensureDir();
-    fs.writeFileSync(getColFile(col), JSON.stringify(items, null, 2));
+    try {
+        ensureDir();
+        fs.writeFileSync(getColFile(col), JSON.stringify(items, null, 2));
+    } catch (e) {
+        console.error(`Failed writing to ${col}.json:`, e.message);
+    }
 }
 
 class LocalDocSnapshot {
@@ -216,22 +255,44 @@ function initDatabase() {
         ? path.resolve(process.env.FIREBASE_SERVICE_ACCOUNT_PATH)
         : path.join(__dirname, 'serviceAccountKey.json');
 
-    const hasServiceAccount = fs.existsSync(serviceAccountPath);
+    const hasServiceAccountFile = fs.existsSync(serviceAccountPath);
+    const rawServiceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_KEY || process.env.FIREBASE_SERVICE_ACCOUNT;
     const hasEnvCredentials = process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY;
     const hasAdc = process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(process.env.GOOGLE_APPLICATION_CREDENTIALS);
 
-    if (hasServiceAccount || hasEnvCredentials || hasAdc) {
+    if (hasServiceAccountFile || rawServiceAccountJson || hasEnvCredentials || hasAdc) {
         try {
-            const { initializeApp, cert, applicationDefault } = require('firebase-admin/app');
+            const { initializeApp, cert, applicationDefault, getApps } = require('firebase-admin/app');
             const { getFirestore } = require('firebase-admin/firestore');
 
+            if (getApps().length > 0) {
+                db = getFirestore(getApps()[0]);
+                isCloudFirebase = true;
+                return db;
+            }
+
             let app;
-            if (hasServiceAccount) {
+            if (rawServiceAccountJson) {
+                let serviceAccount;
+                try {
+                    serviceAccount = JSON.parse(rawServiceAccountJson);
+                } catch (e) {
+                    // Try decoding base64 if it's base64 encoded
+                    const decoded = Buffer.from(rawServiceAccountJson, 'base64').toString('utf8');
+                    serviceAccount = JSON.parse(decoded);
+                }
+                app = initializeApp({ credential: cert(serviceAccount) });
+                console.log('✅ Connected to Google Cloud Firestore using FIREBASE_SERVICE_ACCOUNT_KEY env var');
+            } else if (hasServiceAccountFile) {
                 const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
                 app = initializeApp({ credential: cert(serviceAccount) });
                 console.log('✅ Connected to Google Cloud Firestore using serviceAccountKey.json');
             } else if (hasEnvCredentials) {
-                const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+                let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+                if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+                    privateKey = privateKey.slice(1, -1);
+                }
+                privateKey = privateKey.replace(/\\n/g, '\n');
                 app = initializeApp({
                     credential: cert({
                         projectId: process.env.FIREBASE_PROJECT_ID,
